@@ -31,8 +31,8 @@ app.get("/", async (_req, res) => {
 app.post("/", async (req, res) => {
     try {
         const insertNewWorkout = await client.query(
-            "INSERT INTO basic_saved_workouts (title, workout_data) VALUES ($1, $2)",
-            [req.body.title, req.body.workout]
+            "INSERT INTO basic_saved_workouts (title, workout_data) VALUES ($1, $2) RETURNING *",
+            [req.body.title, req.body.workout_data]
         );
         res.status(201).json(insertNewWorkout.rows);
     } catch (error) {
