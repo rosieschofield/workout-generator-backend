@@ -1,4 +1,4 @@
-import { getEnvVarOrFail } from "./envVarUtils";
+//import { getEnvVarOrFail } from "./envVarUtils";
 
 /** Create and return a db client config object suitable for node-postgres Client or Pool constructors,
  * based upon various environment variables.
@@ -30,7 +30,7 @@ export function setupDBClientConfig() {
     const dbEnvVarName = process.env.USE_LOCAL_DB
         ? "LOCAL_DATABASE_URL"
         : "DATABASE_URL";
-    const connectionString = getEnvVarOrFail(dbEnvVarName);
+    const connectionString = process.env.DATABASE_URL;
 
     const sslSetting = process.env.USE_LOCAL_DB
         ? false
@@ -45,7 +45,7 @@ export function setupDBClientConfig() {
 
     const dbConfig = {
         connectionString,
-        ssl: sslSetting,
+        ssl: { rejectUnauthorized: false },
     };
     return dbConfig;
 }
