@@ -19,7 +19,7 @@ app.use(cors()); //add CORS support to each following route handler
 app.get("/", async (_req, res) => {
     try {
         const savedWorkouts = await client.query(
-            "select title, workout_data FROM basic_saved_workouts"
+            "select workout_id, title, workout_data FROM basic_saved_workouts"
         );
         res.status(200).json(savedWorkouts.rows);
     } catch (error) {
