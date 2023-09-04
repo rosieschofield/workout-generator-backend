@@ -44,7 +44,7 @@ app.post("/", async (req, res) => {
 app.delete("/:id", async (req, res) => {
     try {
         const deleteThisWorkout = await client.query(
-            "DELETE * FROM basic_saved_workouts WHERE workout_id = $1 RETURNING *",
+            "DELETE FROM basic_saved_workouts WHERE workout_id = $1 RETURNING *",
             [req.params.id]
         );
         res.status(200).json(deleteThisWorkout.rows);
