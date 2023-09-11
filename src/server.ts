@@ -4,6 +4,7 @@ import express from "express";
 import { Client } from "pg";
 import { getEnvVarOrFail } from "./support/envVarUtils";
 import { setupDBClientConfig } from "./support/setupDBClientConfig";
+import { getRandIndexArr } from "./utils.ts/helperfunctions";
 
 dotenv.config(); //Read .env file lines as though they were env vars.
 
@@ -79,6 +80,50 @@ app.get("/savedworkouts/exercises", async (_req, res) => {
         res.status(500).send("An error occurred. Check server logs.");
     }
 });
+
+app.get("/exercises/:count", async (req, res) => {
+    try {
+        const randomIndexArray = getRandIndexArr(Number(req.params.count));
+        console.log(randomIndexArray);
+        const randomExercises = await client.query(
+            `SELECT e.exercise_id, e.exercise_name FROM exercises AS e WHERE e.exercise_id = ANY($1)`,
+            [randomIndexArray]
+        );
+        res.status(200).json(randomExercises.rows);
+    } catch (error) {
+        console.error(error);
+        res.status(500).send("An error occurred. Check server logs.");
+    }
+});
+
+app.post("/savedworkout", async (req, res) => {
+    try {
+        const insertNewWorkout = await client.query(
+            "INSERT INTO basic_saved_workouts (title, workout_data) VALUES ($1, $2) RETURNING *",
+            [req.body.title, req.body.workout_data]
+        );
+        res.status(201).json(insertNewWorkout.rows);
+    } catch (error) {
+        console.error(error);
+        res.status(500).send("An error occurred. Check server logs.");
+    }
+});
+
+/*interface WorkoutFormat {
+    workout_id: number;
+    title: string;
+    sets: number;
+    set_rest: number;
+    rep_time: number;
+    rep_rest: number;
+    exercises: ExerciseFormat[];
+}
+
+interface ExerciseFormat {
+    workout_id: number;
+    exercise_id: number;
+    exercise_name: string;
+}*/
 
 connectToDBAndStartListening();
 
