@@ -130,12 +130,12 @@ app.post("/saveworkout", async (req, res) => {
 
 app.delete("/savedworkouts/:id", async (req, res) => {
     try {
-        const deleteThisWorkoutMetadata = await client.query(
-            "DELETE FROM saved_workout_metadata WHERE workout_id = $1 RETURNING *",
-            [req.params.id]
-        );
         const deleteThisWorkoutExercices = await client.query(
             "DELETE FROM saved_workout_exercises WHERE workout_id = $1 RETURNING *",
+            [req.params.id]
+        );
+        const deleteThisWorkoutMetadata = await client.query(
+            "DELETE FROM saved_workout_metadata WHERE workout_id = $1 RETURNING *",
             [req.params.id]
         );
         res.status(200).json({
