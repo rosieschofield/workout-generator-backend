@@ -4,7 +4,10 @@ import express from "express";
 import { Client } from "pg";
 import { getEnvVarOrFail } from "./support/envVarUtils";
 import { setupDBClientConfig } from "./support/setupDBClientConfig";
-import { getRandIndexArr } from "./utils.ts/helperfunctions";
+import {
+    formatExerciseArrForSqlInsert,
+    getRandIndexArr,
+} from "./utils.ts/helperfunctions";
 
 dotenv.config(); //Read .env file lines as though they were env vars.
 
@@ -84,7 +87,6 @@ app.get("/savedworkouts/exercises", async (_req, res) => {
 app.get("/exercises/:count", async (req, res) => {
     try {
         const randomIndexArray = getRandIndexArr(Number(req.params.count));
-        console.log(randomIndexArray);
         const randomExercises = await client.query(
             `SELECT e.exercise_id, e.exercise_name FROM exercises AS e WHERE e.exercise_id = ANY($1)`,
             [randomIndexArray]
@@ -96,34 +98,55 @@ app.get("/exercises/:count", async (req, res) => {
     }
 });
 
-app.post("/savedworkout", async (req, res) => {
+app.post("/saveworkout", async (req, res) => {
     try {
-        const insertNewWorkout = await client.query(
-            "INSERT INTO basic_saved_workouts (title, workout_data) VALUES ($1, $2) RETURNING *",
-            [req.body.title, req.body.workout_data]
+        const exerciseArray = req.body.exercises;
+        const insertNewWorkoutMetadata = await client.query(
+            "INSERT INTO saved_workout_metadata (title,sets, rep_rest, set_rest, rep_time) VALUES ($1, $2, $3, $4, $5) RETURNING workout_id",
+            [
+                req.body.title,
+                req.body.sets,
+                req.body.rep_rest,
+                req.body.set_rest,
+                req.body.rep_time,
+            ]
         );
-        res.status(201).json(insertNewWorkout.rows);
+        const workoutId = insertNewWorkoutMetadata.rows[0].workout_id;
+        const exerciseValuesToInsert = formatExerciseArrForSqlInsert(
+            exerciseArray,
+            workoutId
+        );
+        const insertNewWorkoutExercises = await client.query(
+            "INSERT INTO saved_workout_exercises (workout_id, exercise_id) VALUES " +
+                exerciseValuesToInsert +
+                " RETURNING *"
+        );
+        res.status(201).json(insertNewWorkoutExercises.rows);
     } catch (error) {
         console.error(error);
         res.status(500).send("An error occurred. Check server logs.");
     }
 });
 
-/*interface WorkoutFormat {
-    workout_id: number;
-    title: string;
-    sets: number;
-    set_rest: number;
-    rep_time: number;
-    rep_rest: number;
-    exercises: ExerciseFormat[];
-}
-
-interface ExerciseFormat {
-    workout_id: number;
-    exercise_id: number;
-    exercise_name: string;
-}*/
+app.delete("/savedworkouts/:id", async (req, res) => {
+    try {
+        const deleteThisWorkoutMetadata = await client.query(
+            "DELETE FROM saved_workout_metadata WHERE workout_id = $1 RETURNING *",
+            [req.params.id]
+        );
+        const deleteThisWorkoutExercices = await client.query(
+            "DELETE FROM saved_workout_exercises WHERE workout_id = $1 RETURNING *",
+            [req.params.id]
+        );
+        res.status(200).json({
+            metadata: deleteThisWorkoutMetadata.rows,
+            exercices: deleteThisWorkoutExercices.rows,
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).send("An error occurred. Check server logs.");
+    }
+});
 
 connectToDBAndStartListening();
 
