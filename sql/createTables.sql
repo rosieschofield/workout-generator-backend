@@ -1,8 +1,7 @@
-DROP TABLE IF EXISTS food;
+DROP TABLE IF EXISTS basic_saved_workouts;
 
-CREATE TABLE  food (
-    id          serial PRIMARY KEY,
-    title       varchar(40) NOT NULL
+CREATE TABLE  basic_saved_workouts (
+    workout_id          serial PRIMARY KEY,
+    title       varchar(20), 
+    workout_data  text NOT NULL
 );
-
-INSERT INTO food (title) VALUES ('sourdough'), ('olive oil'), ('pizza'), ('picanha'), ('gorgonzola'), ('basil');
