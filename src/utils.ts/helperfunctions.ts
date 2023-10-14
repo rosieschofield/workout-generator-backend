@@ -6,7 +6,10 @@ export function getRandIndexArr(length: number): number[] {
     while (randIndexArr.length < length) {
         do {
             randomIndex = Math.ceil(Math.random() * 51);
-        } while (randIndexArr.find((num) => num === randomIndex) || randomIndex === 0);
+        } while (
+            randIndexArr.find((num) => num === randomIndex) ||
+            randomIndex === 0
+        );
         randIndexArr.push(randomIndex);
     }
     return randIndexArr;
