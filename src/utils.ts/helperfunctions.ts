@@ -5,8 +5,8 @@ export function getRandIndexArr(length: number): number[] {
     let randomIndex: number;
     while (randIndexArr.length < length) {
         do {
-            randomIndex = Math.floor(Math.random() * 51);
-        } while (randIndexArr.find((num) => num === randomIndex));
+            randomIndex = Math.ceil(Math.random() * 51);
+        } while (randIndexArr.find((num) => num === randomIndex) || randomIndex === 0);
         randIndexArr.push(randomIndex);
     }
     return randIndexArr;
